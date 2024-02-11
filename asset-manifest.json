@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/nimgame/static/css/main.e6c13ad2.css",
+    "main.js": "/nimgame/static/js/main.5f057840.js",
+    "static/js/592.1d192f06.chunk.js": "/nimgame/static/js/592.1d192f06.chunk.js",
+    "index.html": "/nimgame/index.html",
+    "main.e6c13ad2.css.map": "/nimgame/static/css/main.e6c13ad2.css.map",
+    "main.5f057840.js.map": "/nimgame/static/js/main.5f057840.js.map",
+    "592.1d192f06.chunk.js.map": "/nimgame/static/js/592.1d192f06.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.e6c13ad2.css",
+    "static/js/main.5f057840.js"
+  ]
+}
