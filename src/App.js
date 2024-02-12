@@ -14,14 +14,14 @@ function BaseInfo() {
   );
 }
 
-function App() {
+function App({ userId }) { // Accept userId prop
   return (
     <Router>
       <Routes>
         <Route path="/" element={<BaseInfo />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/auth" element={<AuthPage />} />
-        <Route path="/game/:gameId" element={<GamePage />} />
+        <Route path="/game/:gameId" element={<GamePage userId={userId}/>} />
       </Routes>
     </Router>
   );

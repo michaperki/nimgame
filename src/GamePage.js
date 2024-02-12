@@ -2,9 +2,8 @@ import React, { useEffect, useState } from "react";
 import { ref, get, update } from "firebase/database";
 import { database } from "./firebase";
 import { useNavigate, useParams } from "react-router-dom";
-import { auth } from "./firebase";
 
-function GamePage() {
+function GamePage({ userId }) { // Accept userId prop
   const [gameData, setGameData] = useState(null);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -38,11 +37,8 @@ function GamePage() {
   }, [gameId]);
 
   useEffect(() => {
-    // Fetch game data and set current player
-    if (gameData) {
-      setCurrentPlayerId(gameData.turn === 1 ? gameData.player1Id : gameData.player2Id);
-    }
-  }, [gameData]);
+    setCurrentPlayerId(userId); // Set currentPlayerId to userId
+  }, [userId]);
 
   const getGameData = async () => {
     const gamesRef = ref(database, "games");
@@ -137,15 +133,8 @@ function GamePage() {
   };
 
   const getCurrentUserId = () => {
-    // Check if there is a current user
-    if (auth.currentUser) {
-      // Return the current user's ID
-      return auth.currentUser.uid;
-    } else {
-      // No user signed in, handle this case accordingly
-      return null;
-    }
-  };
+    return userId; // Return the userId from the props
+  }
 
   return (
     <div>

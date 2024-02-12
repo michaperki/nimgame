@@ -64,7 +64,7 @@ function HomePage() {
           update(gamesRef, updates)
             .then(() => {
               console.log("Joined game successfully!");
-              navigate(`/game/${gameCode}`);
+              navigate(`/game/${gameCode}`, { state: { userId: currentUser.uid } }); // Pass userId as state
             })
             .catch((error) => {
               console.error("Error updating game:", error);
