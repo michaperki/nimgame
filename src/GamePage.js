@@ -11,7 +11,6 @@ function GamePage() {
   const { gameId } = useParams();
   const [board, setBoard] = useState([]);
   const [selectedSticks, setSelectedSticks] = useState([]);
-  const [currentPlayer, setCurrentPlayer] = useState(""); // State to track current player
   const [currentPlayerId, setCurrentPlayerId] = useState(""); // State to track current player ID
 
   useEffect(() => {
@@ -24,7 +23,6 @@ function GamePage() {
             const gameData = childSnapshot.val();
             if (gameData.gameId === gameId) {
               setGameData(gameData);
-              console.log("gameData", gameData);
               setBoard(gameData.board);
             }
           });
@@ -155,11 +153,7 @@ function GamePage() {
       {error && <p>{error}</p>}
       {gameData && (
         <div>
-          <p>Game ID: {gameData.gameId}</p>
-          <p>Your user ID: {getCurrentUserId()}</p>
-          <p>Player 1: {gameData.player1Id}</p>
-          <p>Player 2: {gameData.player2Id}</p>
-          <p>{gameData.turn === 1 ? "It is player 1's turn" : "It is player 2's turn"}</p>
+          <p>{currentPlayerId === getCurrentUserId() ? "It's your turn" : "It's not your turn"}</p>
         </div>
       )}
       <div>
