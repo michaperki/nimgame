@@ -9,7 +9,7 @@ import app from "./firebase"; // Assuming your firebase.js exports the initializ
 
 function App() {
   return (
-    <Router basename="/nimgame">
+    <Router basename={process.env.PUBLIC_URL}>
       <Routes>
         <Route path="/home" element={<HomePage />} />
         <Route path="/auth" element={<AuthPage />} />
