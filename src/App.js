@@ -1,5 +1,7 @@
+// App.js
+
 import React from "react";
-import { HashRouter as Router, Routes, Route } from "react-router-dom"; // Change BrowserRouter to HashRouter
+import { HashRouter as Router, Routes, Route } from "react-router-dom";
 import AuthPage from "./AuthPage";
 import HomePage from "./HomePage";
 import GamePage from "./GamePage"; // Import the GamePage component
@@ -7,7 +9,7 @@ import app from "./firebase"; // Assuming your firebase.js exports the initializ
 
 function App() {
   return (
-    <Router>
+    <Router basename={process.env.PUBLIC_URL}>
       <Routes>
         <Route path="/home" element={<HomePage />} />
         <Route path="/auth" element={<AuthPage />} />
