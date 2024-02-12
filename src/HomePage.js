@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ref, get, update, push } from "firebase/database";
+import { ref, get, update, set } from "firebase/database";
 import { auth } from "./firebase";
 import { database } from "./firebase";
 import { useNavigate } from "react-router-dom";
@@ -36,37 +36,43 @@ function HomePage() {
   };
 
   const handleJoinGame = async () => {
+    if (!currentUser) {
+      setError("You need to be authenticated to join a game.");
+      return;
+    }
+    
     console.log("Joining game with code:", gameCode);
   
     try {
-      const gamesRef = ref(database, "games");
+      const gamesRef = ref(database, `games/${gameCode}`);
       const snapshot = await get(gamesRef);
   
       if (snapshot.exists()) {
-        snapshot.forEach((childSnapshot) => {
-          const gameData = childSnapshot.val();
-          if (gameData.gameId === gameCode && !gameData.player2Id) { // Check if player 2 is not already assigned
-            const userId = currentUser ? currentUser.uid : generateRandomUserId(); // Use current user's ID if authenticated, or generate a random ID
-            const gameId = gameData.gameId;
-            const gameRef = ref(database, `games/${childSnapshot.key}`);
-            const updates = {
-              player2Id: userId,
-              board: initializeBoard() // Initialize the board array
-            };
+        const gameData = snapshot.val();
+        if (!gameData.player2Id) { // Check if player 2 is not already assigned
+          const userId = currentUser.uid;
   
-            update(gameRef, updates)
-              .then(() => {
-                console.log("Joined game successfully!");
-                navigate(`/game/${gameId}`);
-              })
-              .catch((error) => {
-                console.error("Error updating game:", error);
-                setError("Error joining game. Please try again.");
-              });
-          } else if (gameData.player2Id) {
-            setError("Game is already full.");
-          }
-        });
+          // Generate a random turn (1 or 2)
+          const turn = Math.floor(Math.random() * 2) + 1;
+  
+          const updates = {
+            player2Id: userId,
+            board: initializeBoard(), // Initialize the board array
+            turn: turn // Assign the random turn
+          };
+  
+          update(gamesRef, updates)
+            .then(() => {
+              console.log("Joined game successfully!");
+              navigate(`/game/${gameCode}`);
+            })
+            .catch((error) => {
+              console.error("Error updating game:", error);
+              setError("Error joining game. Please try again.");
+            });
+        } else {
+          setError("Game is already full.");
+        }
       } else {
         setError("No game found with the provided code");
       }
@@ -75,12 +81,18 @@ function HomePage() {
       setError("Error joining game. Please try again.");
     }
   };
+  
 
   const handleCreateGame = async () => {
+    if (!currentUser) {
+      setError("You need to be authenticated to create a game.");
+      return;
+    }
+    
     try {
-      const gamesRef = ref(database, "games");
       const gameId = generateGameId();
-      const userId = currentUser ? currentUser.uid : generateRandomUserId(); // Use current user's ID if authenticated, or generate a random ID
+      const userId = currentUser.uid;
+      const gamesRef = ref(database, `games/${gameId}`);
   
       const gameData = {
         gameId: gameId,
@@ -89,17 +101,13 @@ function HomePage() {
         board: initializeBoard() // Initialize the board array
       };
   
-      await push(gamesRef, gameData);
+      await set(gamesRef, gameData);
       console.log("Game created successfully!");
       navigate(`/game/${gameId}`);
     } catch (error) {
       console.error("Error creating game:", error);
       setError(error.message);
     }
-  };
-
-  const generateRandomUserId = () => {
-    return Math.random().toString(36).substring(2, 15);
   };
 
   return (

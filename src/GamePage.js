@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ref, get, update } from "firebase/database";
 import { database } from "./firebase";
 import { useNavigate, useParams } from "react-router-dom";
+import { auth } from "./firebase";
 
 function GamePage() {
   const [gameData, setGameData] = useState(null);
@@ -11,6 +12,7 @@ function GamePage() {
   const [board, setBoard] = useState([]);
   const [selectedSticks, setSelectedSticks] = useState([]);
   const [currentPlayer, setCurrentPlayer] = useState(""); // State to track current player
+  const [currentPlayerId, setCurrentPlayerId] = useState(""); // State to track current player ID
 
   useEffect(() => {
     const gamesRef = ref(database, "games");
@@ -22,6 +24,7 @@ function GamePage() {
             const gameData = childSnapshot.val();
             if (gameData.gameId === gameId) {
               setGameData(gameData);
+              console.log("gameData", gameData);
               setBoard(gameData.board);
             }
           });
@@ -39,9 +42,7 @@ function GamePage() {
   useEffect(() => {
     // Fetch game data and set current player
     if (gameData) {
-      setCurrentPlayer(
-        gameData.turn === 1 ? gameData.player1Id : gameData.player2Id
-      );
+      setCurrentPlayerId(gameData.turn === 1 ? gameData.player1Id : gameData.player2Id);
     }
   }, [gameData]);
 
@@ -65,7 +66,7 @@ function GamePage() {
       setError("Error getting game data. Please try again.");
     }
   };
-  
+
   const handleStickClick = (rowIndex, stickIndex) => {
     // If the stick is already selected, remove it from the selected sticks
     if (selectedSticks.find(stick => stick.row === rowIndex && stick.stick === stickIndex)) {
@@ -80,45 +81,56 @@ function GamePage() {
     }
     // If it is, add the stick to the selected sticks
     setSelectedSticks([...selectedSticks, { row: rowIndex, stick: stickIndex }]);
-
   };
 
   const handleSubmitMove = () => {
     const gameRef = ref(database, `games/${gameId}`);
-
+  
+    // Get the current user's ID
+    const currentUserId = getCurrentUserId();
+  
     // Check if it's the current player's turn
-    if ((currentPlayer === gameData.player1Id && gameData.turn === 1) ||
-      (currentPlayer === gameData.player2Id && gameData.turn === 2)) {
-
-      // Remove selected sticks from the board
-      const updatedBoard = board.map((row, rowIndex) => {
-        if (rowIndex === selectedSticks[0].row) {
-          return row - selectedSticks.length;
-        }
-        return row;
-      });
-
+    if (currentUserId === currentPlayerId) {
+      // get the row
+      const selectedRow = selectedSticks[0].row;
+      // get the number of sticks
+      const selectedSticksCount = selectedSticks.length;
+  
+      // Make a copy of the board
+      const updatedBoard = [...board];
+      // Update the board by removing the selected sticks from the selected row
+      updatedBoard[selectedRow] -= selectedSticksCount;
+  
+      // Log the updated board   
       console.log("Updated board:", updatedBoard);
-
-      // Calculate the number of sticks removed
-      const sticksRemoved = selectedSticks.length;
-
+  
       const updates = {
         board: updatedBoard,
         // Switch turn after move
         turn: gameData.turn === 1 ? 2 : 1
       };
-
+  
       update(gameRef, updates)
         .then(() => {
           console.log("Move submitted successfully!");
           // Clear selected sticks after submitting move
           setSelectedSticks([]);
 
-          // Fetch updated game data
-          getGameData();
+          console.log("updates.turn", updates.turn);
 
-          // Optionally, you can update other game state here
+  
+          // Fetch updated game data
+          getGameData()
+            .then(() => {
+              // Update local state with the new board data
+              setBoard(updatedBoard);
+              // Update current player ID based on the turn in the updates object
+              setCurrentPlayerId(updates.turn === 1 ? gameData.player1Id : gameData.player2Id);
+            })
+            .catch((error) => {
+              console.error("Error fetching updated game data:", error);
+              setError("Error fetching updated game data. Please try again.");
+            });
         })
         .catch((error) => {
           console.error("Error submitting move:", error);
@@ -129,7 +141,18 @@ function GamePage() {
       setError("It's not your turn to make a move.");
     }
   };
+  
 
+  const getCurrentUserId = () => {
+    // Check if there is a current user
+    if (auth.currentUser) {
+      // Return the current user's ID
+      return auth.currentUser.uid;
+    } else {
+      // No user signed in, handle this case accordingly
+      return null;
+    }
+  };
   return (
     <div>
       <h1>Game Page</h1>
@@ -137,9 +160,9 @@ function GamePage() {
       {gameData && (
         <div>
           <p>Game ID: {gameData.gameId}</p>
+          <p>Your user ID: {getCurrentUserId()}</p>
           <p>Player 1: {gameData.player1Id}</p>
           <p>Player 2: {gameData.player2Id}</p>
-        
           <p>{gameData.turn === 1 ? "It is player 1's turn" : "It is player 2's turn"}</p>
         </div>
       )}
