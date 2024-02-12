@@ -1,5 +1,5 @@
 import React from "react";
-import { HashRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import AuthPage from "./AuthPage";
 import HomePage from "./HomePage";
 import GamePage from "./GamePage"; // Import the GamePage component
@@ -16,7 +16,7 @@ function BaseInfo() {
 
 function App() {
   return (
-    <Router basename="/">
+    <Router>
       <Routes>
         <Route path="/" element={<BaseInfo />} />
         <Route path="/home" element={<HomePage />} />
