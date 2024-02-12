@@ -85,40 +85,36 @@ function GamePage() {
 
   const handleSubmitMove = () => {
     const gameRef = ref(database, `games/${gameId}`);
-  
+
     // Get the current user's ID
     const currentUserId = getCurrentUserId();
-  
+
     // Check if it's the current player's turn
     if (currentUserId === currentPlayerId) {
       // get the row
       const selectedRow = selectedSticks[0].row;
       // get the number of sticks
       const selectedSticksCount = selectedSticks.length;
-  
+
       // Make a copy of the board
       const updatedBoard = [...board];
       // Update the board by removing the selected sticks from the selected row
       updatedBoard[selectedRow] -= selectedSticksCount;
-  
+
       // Log the updated board   
       console.log("Updated board:", updatedBoard);
-  
+
       const updates = {
         board: updatedBoard,
         // Switch turn after move
         turn: gameData.turn === 1 ? 2 : 1
       };
-  
+
       update(gameRef, updates)
         .then(() => {
           console.log("Move submitted successfully!");
           // Clear selected sticks after submitting move
           setSelectedSticks([]);
-
-          console.log("updates.turn", updates.turn);
-
-  
           // Fetch updated game data
           getGameData()
             .then(() => {
@@ -141,7 +137,6 @@ function GamePage() {
       setError("It's not your turn to make a move.");
     }
   };
-  
 
   const getCurrentUserId = () => {
     // Check if there is a current user
@@ -153,6 +148,7 @@ function GamePage() {
       return null;
     }
   };
+
   return (
     <div>
       <h1>Game Page</h1>
@@ -173,11 +169,13 @@ function GamePage() {
             {Array.from({ length: row }).map((_, stickIndex) => (
               <button
                 key={stickIndex}
-                onClick={() => handleStickClick(rowIndex, stickIndex + 1)}
-                style={{ background: selectedSticks.find(stick => stick.row === rowIndex && stick.stick === stickIndex + 1) ? "yellow" : "none" }}
-              >
-                X
-              </button>
+                onClick={() => handleStickClick(rowIndex, stickIndex)}
+                style={{
+                  width: "20px",
+                  height: "20px",
+                  backgroundColor: selectedSticks.find(stick => stick.row === rowIndex && stick.stick === stickIndex) ? "red" : "black"
+                }}
+              ></button>
             ))}
           </div>
         ))}
