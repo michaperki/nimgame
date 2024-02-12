@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "http://localhost:3000/nimgame/static/css/main.e6c13ad2.css",
-    "main.js": "http://localhost:3000/nimgame/static/js/main.17734c4d.js",
+    "main.js": "http://localhost:3000/nimgame/static/js/main.e2e01336.js",
     "static/js/592.1d192f06.chunk.js": "http://localhost:3000/nimgame/static/js/592.1d192f06.chunk.js",
     "index.html": "http://localhost:3000/nimgame/index.html",
     "main.e6c13ad2.css.map": "http://localhost:3000/nimgame/static/css/main.e6c13ad2.css.map",
-    "main.17734c4d.js.map": "http://localhost:3000/nimgame/static/js/main.17734c4d.js.map",
+    "main.e2e01336.js.map": "http://localhost:3000/nimgame/static/js/main.e2e01336.js.map",
     "592.1d192f06.chunk.js.map": "http://localhost:3000/nimgame/static/js/592.1d192f06.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.e6c13ad2.css",
-    "static/js/main.17734c4d.js"
+    "static/js/main.e2e01336.js"
   ]
 }
