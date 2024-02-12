@@ -10,6 +10,7 @@ function GamePage() {
   const { gameId } = useParams();
   const [board, setBoard] = useState([]);
   const [selectedSticks, setSelectedSticks] = useState([]);
+  const [currentPlayer, setCurrentPlayer] = useState(""); // State to track current player
 
   useEffect(() => {
     const gamesRef = ref(database, "games");
@@ -35,6 +36,14 @@ function GamePage() {
     getGameData();
   }, [gameId]);
 
+  useEffect(() => {
+    // Fetch game data and set current player
+    // Your existing code...
+    if (gameData) {
+      setCurrentPlayer(gameData.turn === 1 ? gameData.player1Id : gameData.player2Id);
+    }
+  }, [gameData]);
+
   const handleStickClick = (rowIndex, stickIndex) => {
     // If the stick is already selected, remove it from the selected sticks
     if (selectedSticks.find(stick => stick.row === rowIndex && stick.stick === stickIndex)) {
@@ -54,31 +63,51 @@ function GamePage() {
 
   const handleSubmitMove = () => {
     const gameRef = ref(database, `games/${gameId}`);
-  
-    // Remove selected sticks from the board
-    const updatedBoard = board.map((row, rowIndex) => {
-      if (rowIndex === selectedSticks[0].row) {
-        return row.filter((_, stickIndex) => !selectedSticks.find(stick => stick.stick === stickIndex + 1));
-      }
-      return row;
-    });
-  
-    const updates = {
-      board: updatedBoard
-    };
-  
-    update(gameRef, updates)
-      .then(() => {
-        console.log("Move submitted successfully!");
-        // Clear selected sticks after submitting move
-        setSelectedSticks([]);
-      })
-      .catch((error) => {
-        console.error("Error submitting move:", error);
-        setError("Error submitting move. Please try again.");
+
+    // Check if it's the current player's turn
+    if ((currentPlayer === gameData.player1Id && gameData.turn === 1) ||
+        (currentPlayer === gameData.player2Id && gameData.turn === 2)) {
+      
+      // Remove selected sticks from the board
+      const updatedBoard = board.map((row, rowIndex) => {
+        if (rowIndex === selectedSticks[0].row) {
+          return row - selectedSticks.length;
+        }
+        return row;
       });
+
+      console.log("Updated board:", updatedBoard);
+
+      // Calculate the number of sticks removed
+      const sticksRemoved = selectedSticks.length;
+
+      const updates = {
+        board: updatedBoard,
+        // Switch turn after move
+        turn: gameData.turn === 1 ? 2 : 1
+      };
+
+      update(gameRef, updates)
+        .then(() => {
+          console.log("Move submitted successfully!");
+          // Clear selected sticks after submitting move
+          setSelectedSticks([]);
+
+          // Update the display to show n fewer pieces
+          setBoard(updatedBoard);
+
+          // Optionally, you can update other game state here
+        })
+        .catch((error) => {
+          console.error("Error submitting move:", error);
+          setError("Error submitting move. Please try again.");
+        });
+    } else {
+      // It's not the current player's turn, show error or take appropriate action
+      setError("It's not your turn to make a move.");
+    }
   };
-  
+
   return (
     <div>
       <h1>Game Page</h1>
