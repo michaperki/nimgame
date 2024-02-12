@@ -3,7 +3,6 @@ import { HashRouter as Router, Routes, Route } from "react-router-dom";
 import AuthPage from "./AuthPage";
 import HomePage from "./HomePage";
 import GamePage from "./GamePage"; // Import the GamePage component
-import app from "./firebase"; // Assuming your firebase.js exports the initialized app
 
 // Component to display information on the base domain
 function BaseInfo() {
