@@ -1,13 +1,27 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ref, get, update, push } from "firebase/database";
+import { auth } from "./firebase";
 import { database } from "./firebase";
 import { useNavigate } from "react-router-dom";
 
 function HomePage() {
   const [gameCode, setGameCode] = useState("");
   const [error, setError] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null); // State to store the current user
   const navigate = useNavigate();
 
+  useEffect(() => {
+    // Check if user is authenticated
+    const unsubscribe = auth.onAuthStateChanged(user => {
+      if (user) {
+        setCurrentUser(user);
+      } else {
+        setCurrentUser(null);
+      }
+    });
+    return unsubscribe;
+  }, []);
+  
   const generateGameId = () => {
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     let gameId = "";
@@ -32,7 +46,7 @@ function HomePage() {
         snapshot.forEach((childSnapshot) => {
           const gameData = childSnapshot.val();
           if (gameData.gameId === gameCode) {
-            const userId = "player2Id"; // Replace with actual player 2 ID
+            const userId = currentUser ? currentUser.uid : generateRandomUserId(); // Use current user's ID if authenticated, or generate a random ID
             const gameId = gameData.gameId;
             const gameRef = ref(database, `games/${childSnapshot.key}`);
             const updates = {
@@ -60,27 +74,29 @@ function HomePage() {
     }
   };
 
-  const handleCreateGame = () => {
-    const gamesRef = ref(database, "games");
+  const handleCreateGame = async () => {
+    try {
+      const gamesRef = ref(database, "games");
+      const gameId = generateGameId();
+      const userId = currentUser ? currentUser.uid : generateRandomUserId(); // Use current user's ID if authenticated, or generate a random ID
 
-    const gameId = generateGameId();
-    const userId = "player1Id";
+      const gameData = {
+        gameId: gameId,
+        player1Id: userId,
+        board: initializeBoard() // Initialize the board array
+      };
 
-    const gameData = {
-      gameId: gameId,
-      player1Id: userId,
-      board: initializeBoard() // Initialize the board array
-    };
+      await push(gamesRef, gameData);
+      console.log("Game created successfully!");
+      navigate(`/game/${gameId}`);
+    } catch (error) {
+      console.error("Error creating game:", error);
+      setError(error.message);
+    }
+  };
 
-    push(gamesRef, gameData)
-      .then(() => {
-        console.log("Game created successfully!");
-        navigate(`/game/${gameId}`);
-      })
-      .catch((error) => {
-        console.error("Error creating game:", error);
-        setError(error.message);
-      });
+  const generateRandomUserId = () => {
+    return Math.random().toString(36).substring(2, 15);
   };
 
   return (
