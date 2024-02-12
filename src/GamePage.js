@@ -38,12 +38,34 @@ function GamePage() {
 
   useEffect(() => {
     // Fetch game data and set current player
-    // Your existing code...
     if (gameData) {
-      setCurrentPlayer(gameData.turn === 1 ? gameData.player1Id : gameData.player2Id);
+      setCurrentPlayer(
+        gameData.turn === 1 ? gameData.player1Id : gameData.player2Id
+      );
     }
   }, [gameData]);
 
+  const getGameData = async () => {
+    const gamesRef = ref(database, "games");
+    try {
+      const snapshot = await get(gamesRef);
+      if (snapshot.exists()) {
+        snapshot.forEach((childSnapshot) => {
+          const gameData = childSnapshot.val();
+          if (gameData.gameId === gameId) {
+            setGameData(gameData);
+            setBoard(gameData.board);
+          }
+        });
+      } else {
+        setError("No game found with the provided code");
+      }
+    } catch (error) {
+      console.error("Error getting game data:", error);
+      setError("Error getting game data. Please try again.");
+    }
+  };
+  
   const handleStickClick = (rowIndex, stickIndex) => {
     // If the stick is already selected, remove it from the selected sticks
     if (selectedSticks.find(stick => stick.row === rowIndex && stick.stick === stickIndex)) {
@@ -66,8 +88,8 @@ function GamePage() {
 
     // Check if it's the current player's turn
     if ((currentPlayer === gameData.player1Id && gameData.turn === 1) ||
-        (currentPlayer === gameData.player2Id && gameData.turn === 2)) {
-      
+      (currentPlayer === gameData.player2Id && gameData.turn === 2)) {
+
       // Remove selected sticks from the board
       const updatedBoard = board.map((row, rowIndex) => {
         if (rowIndex === selectedSticks[0].row) {
@@ -93,8 +115,8 @@ function GamePage() {
           // Clear selected sticks after submitting move
           setSelectedSticks([]);
 
-          // Update the display to show n fewer pieces
-          setBoard(updatedBoard);
+          // Fetch updated game data
+          getGameData();
 
           // Optionally, you can update other game state here
         })
@@ -115,7 +137,9 @@ function GamePage() {
       {gameData && (
         <div>
           <p>Game ID: {gameData.gameId}</p>
-          <p>{gameData.player1Id === "player1Id" ? "You are player 1" : "You are player 2"}</p>
+          <p>Player 1: {gameData.player1Id}</p>
+          <p>Player 2: {gameData.player2Id}</p>
+        
           <p>{gameData.turn === 1 ? "It is player 1's turn" : "It is player 2's turn"}</p>
         </div>
       )}

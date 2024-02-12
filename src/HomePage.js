@@ -37,15 +37,15 @@ function HomePage() {
 
   const handleJoinGame = async () => {
     console.log("Joining game with code:", gameCode);
-
+  
     try {
       const gamesRef = ref(database, "games");
       const snapshot = await get(gamesRef);
-
+  
       if (snapshot.exists()) {
         snapshot.forEach((childSnapshot) => {
           const gameData = childSnapshot.val();
-          if (gameData.gameId === gameCode) {
+          if (gameData.gameId === gameCode && !gameData.player2Id) { // Check if player 2 is not already assigned
             const userId = currentUser ? currentUser.uid : generateRandomUserId(); // Use current user's ID if authenticated, or generate a random ID
             const gameId = gameData.gameId;
             const gameRef = ref(database, `games/${childSnapshot.key}`);
@@ -53,7 +53,7 @@ function HomePage() {
               player2Id: userId,
               board: initializeBoard() // Initialize the board array
             };
-
+  
             update(gameRef, updates)
               .then(() => {
                 console.log("Joined game successfully!");
@@ -63,6 +63,8 @@ function HomePage() {
                 console.error("Error updating game:", error);
                 setError("Error joining game. Please try again.");
               });
+          } else if (gameData.player2Id) {
+            setError("Game is already full.");
           }
         });
       } else {
@@ -79,13 +81,14 @@ function HomePage() {
       const gamesRef = ref(database, "games");
       const gameId = generateGameId();
       const userId = currentUser ? currentUser.uid : generateRandomUserId(); // Use current user's ID if authenticated, or generate a random ID
-
+  
       const gameData = {
         gameId: gameId,
         player1Id: userId,
+        player2Id: "", // Initially set to empty for player 2
         board: initializeBoard() // Initialize the board array
       };
-
+  
       await push(gamesRef, gameData);
       console.log("Game created successfully!");
       navigate(`/game/${gameId}`);
