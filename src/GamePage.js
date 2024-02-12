@@ -11,6 +11,7 @@ function GamePage({ userId }) { // Accept userId prop
   const [board, setBoard] = useState([]);
   const [selectedSticks, setSelectedSticks] = useState([]);
   const [currentPlayerId, setCurrentPlayerId] = useState(""); // State to track current player ID
+  const [winner, setWinner] = useState(null); // State to track winner
 
   useEffect(() => {
     const gamesRef = ref(database, "games");
@@ -104,6 +105,16 @@ function GamePage({ userId }) { // Accept userId prop
         turn: gameData.turn === 1 ? 2 : 1
       };
 
+      // Check if only one stick remains after the move
+      const remainingSticks = updatedBoard.reduce((sum, sticks) => sum + sticks, 0);
+      console.log("Remaining sticks:", remainingSticks);
+      if (remainingSticks === "0001" || remainingSticks === "0010" || remainingSticks === "0100" || remainingSticks === "1000" || remainingSticks === 1) {
+        // set the winner based on the turn
+        setWinner(gameData.turn === 1 ? gameData.player2Id : gameData.player1Id);
+        // Add winner to the updates object
+        updates.winner = gameData.turn === 1 ? gameData.player1Id : gameData.player2Id;
+      }
+
       update(gameRef, updates)
         .then(() => {
           console.log("Move submitted successfully!");
@@ -132,6 +143,7 @@ function GamePage({ userId }) { // Accept userId prop
     }
   };
 
+
   const getCurrentUserId = () => {
     return userId; // Return the userId from the props
   }
@@ -140,6 +152,7 @@ function GamePage({ userId }) { // Accept userId prop
     <div>
       <h1>Game Page</h1>
       {error && <p>{error}</p>}
+      {winner && <p>{winner === userId ? "Congratulations! You won!" : "Sorry, you lost. Better luck next time!"}</p>}
       {gameData && (
         <div>
           <p>{currentPlayerId === getCurrentUserId() ? "It's your turn" : "It's not your turn"}</p>
